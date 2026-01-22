@@ -1,0 +1,39 @@
+[camera]
+index = 1
+preferred_width = 1920
+preferred_height = 1080
+
+[split]
+ratio = 0.5
+
+[qr]
+abackend = "opencv"
+backend = "pyzbar"
+
+[timing]
+stable_seconds = 2.0
+dropout_seconds = 0.5
+forget_seconds = 2.0
+
+[mixxx]
+window_class_hint = "mixxx"
+step_delay_seconds = 0.1
+search_hotkey = "ctrl+f"
+result_tab_count = 3
+left_deck_key = "Shift+Left"
+right_deck_key = "Shift+Right"
+
+[ui]
+show_debug = true
+
+[discogs]
+user_agent = "schallpappenspieler/0.1"
+
+[patches]
+output_pdf = "songpatches.pdf"
+patch_size_cm = 6.7
+qr_size_cm = 3.0
+page_width_mm = 210
+page_height_mm = 297
+cover_source = "discogs"
+layout_mode = "fullsize_cover"
