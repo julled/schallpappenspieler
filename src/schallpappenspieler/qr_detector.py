@@ -22,8 +22,10 @@ def _polygon_area(points: np.ndarray) -> float:
 class QRDetector:
     def __init__(self, backend: str = "opencv"):
         self.backend = backend
-        self._opencv = cv2.QRCodeDetector()
+        self._opencv = None
         self._pyzbar = None
+        self._zxingcpp = None
+
         if backend == "pyzbar":
             try:
                 from pyzbar import pyzbar  # type: ignore
@@ -32,10 +34,24 @@ class QRDetector:
                     "pyzbar is not installed; install it or use backend=opencv"
                 ) from exc
             self._pyzbar = pyzbar
+        elif backend == "zxingcpp":
+            try:
+                import zxingcpp  # type: ignore
+            except ImportError as exc:
+                raise RuntimeError(
+                    "zxing-cpp is not installed; pip install zxing-cpp"
+                ) from exc
+            self._zxingcpp = zxingcpp
+        elif backend == "opencv_aruco":
+            self._opencv = cv2.QRCodeDetectorAruco()
+        else:
+            self._opencv = cv2.QRCodeDetector()
 
     def detect(self, frame) -> List[QRCodeDetection]:
         if self.backend == "pyzbar":
             return _detect_pyzbar(frame, self._pyzbar)
+        if self.backend == "zxingcpp":
+            return _detect_zxingcpp(frame, self._zxingcpp)
         return _detect_opencv(frame, self._opencv)
 
 
@@ -107,6 +123,32 @@ def _detect_pyzbar(frame, pyzbar) -> List[QRCodeDetection]:
         detections.append(
             QRCodeDetection(
                 text=text,
+                points=quad_points,
+                center=(center_x, center_y),
+                area=area,
+            )
+        )
+    return detections
+
+
+def _detect_zxingcpp(frame, zxingcpp) -> List[QRCodeDetection]:
+    detections: List[QRCodeDetection] = []
+    for result in zxingcpp.read_barcodes(frame):
+        if not result.text:
+            continue
+        pos = result.position
+        quad_points = [
+            (float(pos.top_left.x), float(pos.top_left.y)),
+            (float(pos.top_right.x), float(pos.top_right.y)),
+            (float(pos.bottom_right.x), float(pos.bottom_right.y)),
+            (float(pos.bottom_left.x), float(pos.bottom_left.y)),
+        ]
+        center_x = sum(p[0] for p in quad_points) / 4.0
+        center_y = sum(p[1] for p in quad_points) / 4.0
+        area = _polygon_area(np.array(quad_points))
+        detections.append(
+            QRCodeDetection(
+                text=result.text,
                 points=quad_points,
                 center=(center_x, center_y),
                 area=area,

@@ -1,6 +1,5 @@
 import hashlib
 import math
-import random
 from dataclasses import dataclass
 from typing import Iterable, Optional
 
@@ -131,63 +130,6 @@ def _max_square_size_in_circle(radius: float, gap: float) -> float:
     return max(0.0, (-2 * g + math.sqrt(disc)) / 2.5)
 
 
-def _draw_pattern(
-    c, center_x: float, center_y: float, radius: float, seed: int
-) -> None:
-    if radius <= 0:
-        return
-    rng = random.Random(seed)
-    c.saveState()
-    path = c.beginPath()
-    path.circle(center_x, center_y, radius)
-    c.clipPath(path, stroke=0, fill=0)
-
-    c.setFillColorRGB(1, 1, 1)
-    c.rect(
-        center_x - radius, center_y - radius, 2 * radius, 2 * radius, fill=1, stroke=0
-    )
-
-    shape_count = 36
-    for _ in range(shape_count):
-        is_black = rng.random() < 0.55
-        color = 0 if is_black else 1
-        c.setFillColorRGB(color, color, color)
-        c.setStrokeColorRGB(color, color, color)
-
-        shape = rng.randint(0, 3)
-        if shape == 0:
-            w = rng.uniform(radius * 0.2, radius * 0.8)
-            h = rng.uniform(radius * 0.2, radius * 0.8)
-            x = center_x - radius + rng.random() * (2 * radius - w)
-            y = center_y - radius + rng.random() * (2 * radius - h)
-            c.rect(x, y, w, h, fill=1, stroke=0)
-        elif shape == 1:
-            r = rng.uniform(radius * 0.15, radius * 0.45)
-            x = center_x - radius + rng.random() * (2 * radius)
-            y = center_y - radius + rng.random() * (2 * radius)
-            c.circle(x, y, r, fill=1, stroke=0)
-        elif shape == 2:
-            p = c.beginPath()
-            for i in range(3):
-                x = center_x - radius + rng.random() * (2 * radius)
-                y = center_y - radius + rng.random() * (2 * radius)
-                if i == 0:
-                    p.moveTo(x, y)
-                else:
-                    p.lineTo(x, y)
-            p.close()
-            c.drawPath(p, fill=1, stroke=0)
-        else:
-            c.setLineWidth(rng.uniform(0.4, 1.2))
-            x1 = center_x - radius + rng.random() * (2 * radius)
-            y1 = center_y - radius + rng.random() * (2 * radius)
-            x2 = center_x - radius + rng.random() * (2 * radius)
-            y2 = center_y - radius + rng.random() * (2 * radius)
-            c.line(x1, y1, x2, y2)
-
-    c.restoreState()
-
-
 def _draw_text_box(
     c,
     lines: list[str],
@@ -282,11 +224,9 @@ def render_patches_to_pdf(
         font_size = 10
         line_height = font_size * 1.2
         max_lines = 2
-        text_box_pad = 2.0 * mm
+        text_box_pad = 0.6 * mm
         artist = patch.artist or ""
         title = patch.title or patch.display_name
-
-        # _draw_pattern(c, center_x, center_y, safe_radius, _seed_for_patch(patch))
 
         if layout_mode == "fullsize_cover":
             cover_size = min(6.5 * cm, 2 * safe_radius)
@@ -476,7 +416,7 @@ def render_patches_to_pdf(
         c.saveState()
         c.setLineWidth(0.5)
         c.setDash(2, 2)
-        c.setStrokeColorRGB(1, 1, 1)
+        c.setStrokeColorRGB(0, 0, 0)
         c.circle(center_x, center_y, radius, stroke=1, fill=0)
         c.restoreState()
 

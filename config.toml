@@ -1,19 +1,18 @@
 [camera]
-index = 1
-preferred_width = 1920
-preferred_height = 1080
+index = 6
+#preferred_width = 2048
+#preferred_height = 1536
 
 [split]
 ratio = 0.5
 
 [qr]
-abackend = "opencv"
-backend = "pyzbar"
+backend = "zxingcpp" # pyzbar/opencv/opencv_aruco/zxingcpp
 
 [timing]
-stable_seconds = 2.0
+stable_seconds = 1.0
 dropout_seconds = 0.5
-forget_seconds = 2.0
+forget_seconds = 5.0
 
 [mixxx]
 window_class_hint = "mixxx"

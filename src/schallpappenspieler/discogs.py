@@ -57,16 +57,27 @@ class DiscogsClient:
         if artist:
             params["artist"] = artist
 
-        resp = self._session.get(
-            "https://api.discogs.com/database/search",
-            params=params,
-            timeout=15,
-        )
-        resp.raise_for_status()
-        self._update_rate(resp.headers)
+        max_retries = 2
+        for attempt in range(max_retries + 1):
+            resp = self._session.get(
+                "https://api.discogs.com/database/search",
+                params=params,
+                timeout=15,
+            )
+            self._update_rate(resp.headers)
+            if resp.status_code == 429:
+                retry_after = resp.headers.get("Retry-After")
+                try:
+                    wait_seconds = int(retry_after) if retry_after else 60
+                except ValueError:
+                    wait_seconds = 60
+                time.sleep(wait_seconds)
+                continue
+            resp.raise_for_status()
 
-        data = resp.json()
-        results = data.get("results", [])
-        if not results:
-            return None
-        return results[0].get("cover_image")
+            data = resp.json()
+            results = data.get("results", [])
+            if not results:
+                return None
+            return results[0].get("cover_image")
+        return None

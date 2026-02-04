@@ -102,7 +102,7 @@ def main() -> int:
 
     output_pdf = args.output or patches_cfg.get("output_pdf", "songpatches.pdf")
 
-    entries = _parse_m3u(args.m3u)
+    entries = _parse_m3u(args.m3u)[0:8]
     assets: List[PatchAssets] = []
 
     progress = tqdm(entries, desc="Building patches")

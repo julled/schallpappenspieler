@@ -1,9 +1,18 @@
+"""
+State tracking for QR code detections with stability-based triggering.
+
+Prevents spurious triggers from transient QR detections by requiring
+a configurable stability period before firing events.
+"""
+
 from dataclasses import dataclass
 from typing import Optional
 
 
 @dataclass
 class SideState:
+    """Current state for one side (left or right) of the detection area."""
+
     current_text: Optional[str] = None
     first_seen: Optional[float] = None
     last_seen: Optional[float] = None
@@ -12,11 +21,24 @@ class SideState:
 
 @dataclass
 class TriggerEvent:
-    side: str
-    text: str
+    """Event fired when a QR code detection becomes stable."""
+
+    side: str  # "left" or "right"
+    text: str  # QR code content
 
 
 class StateTracker:
+    """
+    Tracks detection stability across left and right sides.
+
+    Timing behavior:
+    - stable_seconds: How long a detection must persist before triggering
+    - dropout_seconds: Max time without detection before resetting stability
+    - forget_seconds: Max time without detection before clearing state entirely
+
+    This prevents accidental triggers from momentary QR code appearances.
+    """
+
     def __init__(
         self, stable_seconds: float, dropout_seconds: float, forget_seconds: float
     ):
